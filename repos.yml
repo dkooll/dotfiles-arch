@@ -1,0 +1,114 @@
+---
+- name: Clone repositories
+  hosts: localhost
+  vars:
+    path: "{{ lookup('env', 'HOME') }}/workspaces/cloudnation-wam"
+    repo_list:
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-kv.git', dest: 'terraform-azure-kv' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-law.git', dest: 'terraform-azure-law' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-evh.git', dest: 'terraform-azure-evh' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-rg.git', dest: 'terraform-azure-rg' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vnet.git', dest: 'terraform-azure-vnet' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-sa.git', dest: 'terraform-azure-sa' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-sql.git', dest: 'terraform-azure-sql' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-psql.git', dest: 'terraform-azure-psql' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-cosmosdb.git', dest: 'terraform-azure-cosmosdb' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-acr.git', dest: 'terraform-azure-acr' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-bastion.git', dest: 'terraform-azure-bastion' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-aks.git', dest: 'terraform-azure-aks' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vwan.git', dest: 'terraform-azure-vwan' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vgw.git', dest: 'terraform-azure-vgw' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-rbac.git', dest: 'terraform-azure-rbac' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-ca.git', dest: 'terraform-azure-ca' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-func.git', dest: 'terraform-azure-func' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vm.git', dest: 'terraform-azure-vm' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vmss.git', dest: 'terraform-azure-vmss' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-agw.git', dest: 'terraform-azure-agw' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-syn.git', dest: 'terraform-azure-syn' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-pdns.git', dest: 'terraform-azure-pdns' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-wafwp.git', dest: 'terraform-azure-wafwp' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-dnspr.git', dest: 'terraform-azure-dnspr' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-fdfwp.git', dest: 'terraform-azure-fdfwp' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-pip.git', dest: 'terraform-azure-pip' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-pe.git', dest: 'terraform-azure-pe' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-alerts.git', dest: 'terraform-azure-alerts' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-sqlmi.git', dest: 'terraform-azure-sqlmi' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-redis.git', dest: 'terraform-azure-redis' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-mysql.git', dest: 'terraform-azure-mysql' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-costs.git', dest: 'terraform-azure-costs' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-appi.git', dest: 'terraform-azure-appi' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-apim.git', dest: 'terraform-azure-apim' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-rsv.git', dest: 'terraform-azure-rsv' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-mag.git', dest: 'terraform-azure-mag' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-fwp.git', dest: 'terraform-azure-fwp' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-dcr.git', dest: 'terraform-azure-dcr' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-app.git', dest: 'terraform-azure-app' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-sb.git', dest: 'terraform-azure-sb' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-nw.git', dest: 'terraform-azure-nw' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-lb.git', dest: 'terraform-azure-lb' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-fw.git', dest: 'terraform-azure-fw' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-fd.git', dest: 'terraform-azure-fd' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-aa.git', dest: 'terraform-azure-aa' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-plan.git', dest: 'terraform-azure-plan' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-eg.git', dest: 'terraform-azure-eg' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-naming.git', dest: 'terraform-azure-naming', version: 'master' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-appcfg.git', dest: 'terraform-azure-appcfg' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-workflows.git', dest: 'terraform-azure-workflows' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-ais.git', dest: 'terraform-azure-ais' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-ci.git', dest: 'terraform-azure-ci' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-cog.git', dest: 'terraform-azure-cog' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-dbw.git', dest: 'terraform-azure-dbw' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-locations.git', dest: 'terraform-azure-locations' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-mcf.git', dest: 'terraform-azure-mcf' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-ng.git', dest: 'terraform-azure-ng' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-pim.git', dest: 'terraform-azure-pim' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-sub.git', dest: 'terraform-azure-sub' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-uai.git', dest: 'terraform-azure-uai' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-vnm.git', dest: 'terraform-azure-vnm' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azure-wam-website.git', dest: 'terraform-azure-wam-website' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azuread-groups.git', dest: 'terraform-azuread-groups' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-azuread-users.git', dest: 'terraform-azuread-users' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-databricks-cl.git', dest: 'terraform-databricks-cl' }
+      - { repo: 'https://github.com/CloudNationHQ/terraform-databricks-clp.git', dest: 'terraform-databricks-clp' }
+      - { repo: 'https://github.com/CloudNationHQ/well-architected-modules.git', dest: 'well-architected-modules' }
+
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Clone repositories
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ path }}/{{ item.dest }}"
+        version: "{{ item.version | default('main') }}"
+        update: yes
+        force: no
+      loop: "{{ repo_list }}"
+
+- name: Clone dkooll repositories
+  hosts: localhost
+  vars:
+    path: "{{ lookup('env', 'HOME') }}/workspaces/dkooll"
+    repo_list:
+      - { repo: 'https://github.com/dkooll/tmuxer.nvim.git', dest: 'tmuxer.nvim' }
+      - { repo: 'https://github.com/dkooll/validor.git', dest: 'validor' }
+      - { repo: 'https://github.com/dkooll/wamcp.git', dest: 'wamcp' }
+      - { repo: 'https://github.com/dkooll/diffy.nvim.git', dest: 'diffy.nvim' }
+      - { repo: 'https://github.com/dkooll/diffy.git', dest: 'diffy' }
+      - { repo: 'https://github.com/dkooll/markparsr.git', dest: 'markparsr' }
+      - { repo: 'https://github.com/dkooll/issuor.git', dest: 'issuor' }
+      - { repo: 'https://github.com/dkooll/bouncer.nvim.git', dest: 'bouncer.nvim' }
+      - { repo: 'https://github.com/dkooll/rusty.git', dest: 'rusty' }
+
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Clone repositories
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ path }}/{{ item.dest }}"
+        version: "{{ item.version | default('main') }}"
+        update: yes
+        force: no
+      loop: "{{ repo_list }}"
