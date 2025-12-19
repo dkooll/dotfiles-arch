@@ -22,7 +22,7 @@ install_source() {
 }
 
 install_packages() {
-  log "[install] installing base packages via pacman"
+  log "installing base packages via pacman"
 
   sudo pacman -Syu --needed --noconfirm \
     base-devel \
@@ -115,7 +115,7 @@ install_packages() {
 }
 
 setup_symlinks() {
-  log "[install] setting up symlinks"
+  log "setting up symlinks"
 
   mkdir -p "$HOME/.config"
 
@@ -133,17 +133,17 @@ setup_symlinks() {
     mkdir -p "$(dirname "$dest")"
 
     if [[ -e "$dest" && ! -L "$dest" ]]; then
-      log "[install] backing up $dest -> $dest.backup"
+      log "backing up $dest -> $dest.backup"
       mv "$dest" "$dest.backup"
     fi
 
-    log "[install] linking $src -> $dest"
+    log "linking $src -> $dest"
     ln -sf "$src" "$dest"
   done
 }
 
 setup_tmux() {
-  log "[install] ensuring tmux plugin manager (tpm) is installed"
+  log "ensuring tmux plugin manager (tpm) is installed"
 
   if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
     git clone -q https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
@@ -154,7 +154,7 @@ main() {
   install_packages
   setup_tmux
   setup_symlinks
-  log "done ✅"
+  log "done"
 }
 
 main
