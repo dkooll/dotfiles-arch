@@ -53,6 +53,7 @@ return {
         IndentBlanklineChar = { fg = colors.surface0 },
         IndentBlanklineContextChar = { fg = colors.surface2 },
         GitSignsChange = { fg = colors.peach },
+        GitSignsCurrentLineBlame = { fg = "#9E8069", italic = true },
         NvimTreeIndentMarker = { link = "IndentBlanklineChar" },
         NvimTreeExecFile = { fg = colors.text },
         Visual = { fg = "#9E8069" },
