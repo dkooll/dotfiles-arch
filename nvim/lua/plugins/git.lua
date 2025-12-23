@@ -1,17 +1,12 @@
 return {
   {
-    "sindrets/diffview.nvim",
-    keys = {
-      { "<leader>gh", "<cmd>DiffviewFileHistory<CR>", desc = "Diffview: Git Diff View File History" },
-    },
-    config = function()
-      require("diffview").setup({})
-    end,
-  },
-  {
     "lewis6991/gitsigns.nvim",
     lazy = true,
     event = { "BufReadPre", "BufNewFile" },
+    keys = {
+      { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<CR>", desc = "Gitsigns: Toggle current line blame" },
+      { "<leader>gB", "<cmd>Gitsigns blame<CR>",                     desc = "Gitsigns: Show blame buffer" },
+    },
     config = function()
       local icons = require("config.icons")
       require("gitsigns").setup {
@@ -64,21 +59,4 @@ return {
       }
     end
   },
-  {
-    "NeogitOrg/neogit",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "sindrets/diffview.nvim",
-      "nvim-telescope/telescope.nvim",
-    },
-    cmd = "Neogit",
-    keys = {
-      { "<leader>gg", "<cmd>Neogit kind=split_below<CR>", desc = "Neogit" },
-    },
-    opts = {
-      disable_signs = false,
-      disable_context_highlighting = true,
-      commit_view = { kind = "tab", position = "tab" },
-    },
-  }
 }

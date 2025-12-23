@@ -20,7 +20,7 @@ return {
          ███████████ ███    ███ █████████ █████ █████ ████ █████
         ██████  █████████████████████ ████ █████ █████ ████ ██████
 
-                              rasberry pi dev
+                              arch linux dev
      ]]
     dashboard.section.header.val = vim.split(logo, "\n")
     dashboard.section.buttons.val = vim.tbl_map(function(btn)

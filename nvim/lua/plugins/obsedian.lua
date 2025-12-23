@@ -35,8 +35,8 @@ return {
   config = function()
     local NOTES_PATH_PATTERN = "obsidian%-notes"
     local WORKSPACES = {
-      { name = "tech",    path = "/home/dev/workspaces/dkooll/obsidian-notes/tech" },
-      { name = "worship", path = "/home/dev/workspaces/dkooll/obsidian-notes/worship" },
+      { name = "tech",    path = "/home/dkooll/workspaces/dkooll/obsidian-notes/tech" },
+      { name = "worship", path = "/home/dkooll/workspaces/dkooll/obsidian-notes/worship" },
     }
 
     local highlights = {
