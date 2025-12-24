@@ -94,7 +94,8 @@ return {
       },
       bind_to_cwd = true,
       follow_current_file = {
-        enabled = false,
+        enabled = true,
+        leave_dirs_open = true,
       },
       group_empty_dirs = true,
       search_limit = 50,
