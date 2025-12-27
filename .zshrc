@@ -21,6 +21,10 @@ export SAVEHIST=1000
 # ZSH options
 setopt INC_APPEND_HISTORY SHARE_HISTORY HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_FIND_NO_DUPS HIST_IGNORE_SPACE HIST_VERIFY EXTENDED_HISTORY
 
+# Enable completion system
+autoload -Uz compinit
+compinit
+
 # FZF setup
 eval "$(fzf --zsh)"
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
