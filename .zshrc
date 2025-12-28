@@ -41,6 +41,12 @@ _fzf_compgen_dir() {
 
 # Alias definitions
 alias tf='terraform'
+alias tfi='terraform init'
+alias tfp='terraform plan'
+alias tfa='terraform apply'
+alias tfd='terraform destroy'
+alias tfv='terraform validate'
+alias tff='terraform fmt'
 alias t='tmux'
 alias ls='eza --color=auto --icons'
 alias ll='eza -la --color=auto --icons'
