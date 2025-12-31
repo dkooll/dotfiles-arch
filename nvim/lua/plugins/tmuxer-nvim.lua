@@ -4,11 +4,10 @@ return {
   cmd          = { "TmuxCreateSession", "TmuxSwitchSession", "TmuxToggleArchive" },
   config       = function()
     require("tmuxer").setup({
-      nvim_alias = "NVIM_APPNAME=nvim-dev nvim",
       workspaces = {
         {
           name = "workspaces",
-          path = "~/Documents/workspaces"
+          path = "/home/dkooll/workspaces"
         }
       },
       max_depth = 2,
