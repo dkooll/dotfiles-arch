@@ -1,13 +1,14 @@
 return {
   "dkooll/tmuxer.nvim",
   dependencies = { "nvim-telescope/telescope.nvim" },
-  cmd = { "WorkspaceOpen", "TmuxSessions" },
-  config = function()
+  cmd          = { "TmuxCreateSession", "TmuxSwitchSession", "TmuxToggleArchive" },
+  config       = function()
     require("tmuxer").setup({
+      nvim_alias = "NVIM_APPNAME=nvim-dev nvim",
       workspaces = {
         {
           name = "workspaces",
-          path = "~/workspaces"
+          path = "~/Documents/workspaces"
         }
       },
       max_depth = 2,
@@ -24,23 +25,10 @@ return {
       }
     })
   end,
-  keys = {
-    {
-      "<leader>tc",
-      function()
-        require("tmuxer").open_workspace_popup({
-          name = "workspaces",
-          path = "~/workspaces"
-        })
-      end,
-      desc = "Tmuxer: Create Tmux Session"
-    },
-    {
-      "<leader>ts",
-      function()
-        require("tmuxer").tmux_sessions()
-      end,
-      desc = "Tmuxer: Switch Tmux Session"
-    },
+  keys         = {
+    { "<leader>tc", "<cmd>TmuxCreateSession<cr>",  desc = "Tmuxer: Create Session" },
+    { "<leader>ts", "<cmd>TmuxSwitchSession<cr>",  desc = "Tmuxer: Switch Session" },
+    { "<leader>ta", "<cmd>TmuxToggleArchive<cr>",  desc = "Tmuxer: Toggle Archive" },
+    { "<leader>th", "<cmd>checkhealth tmuxer<cr>", desc = "Tmuxer: Health Check" },
   },
 }
