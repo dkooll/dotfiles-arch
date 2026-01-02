@@ -37,8 +37,8 @@ return {
     local NOTES_PATH_PATTERN = "obsidian%-notes"
     local CACHE_DURATION = 10
     local WORKSPACES = {
-      { name = "tech",    path = "~/Documents/workspaces/dkooll/obsidian-notes/tech" },
-      { name = "worship", path = "~/Documents/workspaces/dkooll/obsidian-notes/worship" },
+      { name = "tech",    path = "/home/dkooll/workspaces/dkooll/obsidian-notes/tech" },
+      { name = "worship", path = "/home/dkooll/workspaces/dkooll/obsidian-notes/worship" },
     }
 
     local highlights = {
