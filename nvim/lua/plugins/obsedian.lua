@@ -49,6 +49,7 @@ return {
       NotesLightItalic = { fg = "#C0B8A8", italic = true },
       NotesYamlString = { fg = "#968A80", italic = true },
       NotesYamlKey = { fg = "#C0B8A8" },
+      NotesSearchMatch = { bg = "#3a3a3a" },
     }
     for name, opts in pairs(highlights) do
       vim.api.nvim_set_hl(0, name, opts)
@@ -115,33 +116,75 @@ return {
       end
     end
 
-    -- Custom previewer that applies highlights synchronously to avoid flicker.
-    -- Uses sync file read which is fine for typical notes (<100KB), but may
-    -- cause brief delay for very large files (1MB+).
-    local function create_notes_previewer()
+    -- Custom grep previewer: uses Telescope's buffer_previewer_maker for proper search
+    -- highlighting, then applies our custom highlights in the callback (no flicker)
+    local search_hl_ns = vim.api.nvim_create_namespace("obsidian_search_hl")
+
+    local function create_notes_grep_previewer()
       local previewers = require("telescope.previewers")
+      local from_entry = require("telescope.from_entry")
+
       return previewers.new_buffer_previewer({
         title = "Preview",
+        get_buffer_by_name = function(_, entry)
+          return from_entry.path(entry, false)
+        end,
         define_preview = function(self, entry)
+          local p = from_entry.path(entry, true)
+          if not p or p == "" then return end
+
           local bufnr = self.state.bufnr
           local winid = self.state.winid
-          if not entry.filename or not vim.fn.filereadable(entry.filename) then return end
 
-          local lines = vim.fn.readfile(entry.filename)
-          vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-          vim.bo[bufnr].filetype = "markdown"
+          telescope_config_values.buffer_previewer_maker(p, bufnr, {
+            bufname = self.state.bufname,
+            winid = winid,
+            callback = function()
+              if winid and vim.api.nvim_win_is_valid(winid) then
+                apply_notes_highlights(winid)
+                vim.api.nvim_set_option_value('wrap', true, { win = winid })
+                vim.api.nvim_set_option_value('linebreak', true, { win = winid })
+                vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
+              end
+              if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+                apply_frontmatter_highlights(bufnr)
 
-          if winid then
-            apply_notes_highlights(winid)
-            vim.api.nvim_set_option_value('wrap', true, { win = winid })
-            vim.api.nvim_set_option_value('linebreak', true, { win = winid })
-            vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
-          end
-          apply_frontmatter_highlights(bufnr)
+                -- Jump to line and highlight the match
+                if entry.lnum and entry.lnum > 0 then
+                  vim.api.nvim_buf_clear_namespace(bufnr, search_hl_ns, 0, -1)
 
-          if entry.lnum and winid then
-            pcall(vim.api.nvim_win_set_cursor, winid, { entry.lnum, 0 })
-          end
+                  local lnum = entry.lnum - 1
+                  local col_start = (entry.col or 1) - 1
+                  local col_end = col_start
+
+                  -- Get match end from entry, or calculate from line
+                  if entry.finish then
+                    col_end = entry.finish
+                  else
+                    local line = vim.api.nvim_buf_get_lines(bufnr, lnum, lnum + 1, false)[1]
+                    if line then
+                      -- Find word boundary after col_start
+                      local _, word_end = line:find("[%w_]+", col_start + 1)
+                      col_end = word_end or (col_start + 1)
+                    end
+                  end
+
+                  -- Highlight the matched word
+                  vim.api.nvim_buf_set_extmark(bufnr, search_hl_ns, lnum, col_start, {
+                    end_row = lnum,
+                    end_col = col_end,
+                    hl_group = "NotesSearchMatch",
+                  })
+
+                  -- Center the view on the match
+                  if winid and vim.api.nvim_win_is_valid(winid) then
+                    pcall(vim.api.nvim_win_set_cursor, winid, { entry.lnum, col_start })
+                    pcall(vim.api.nvim_win_call, winid, function() vim.cmd("norm! zz") end)
+                  end
+                end
+              end
+            end,
+          })
         end,
       })
     end
@@ -384,7 +427,7 @@ return {
           return default_entry
         end, 120),
         sorter = telescope_config_values.generic_sorter({}),
-        previewer = create_notes_previewer(),
+        previewer = create_notes_grep_previewer(),
         attach_mappings = grep_picker_mappings(),
       }):find()
     end
@@ -513,7 +556,7 @@ return {
           return default_entry
         end, 120),
         sorter = telescope_config_values.generic_sorter({}),
-        previewer = create_notes_previewer(),
+        previewer = create_notes_grep_previewer(),
         attach_mappings = grep_picker_mappings(),
       }):find()
     end
