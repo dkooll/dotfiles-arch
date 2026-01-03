@@ -115,44 +115,47 @@ return {
       end
     end
 
-    local function apply_preview_highlights(prompt_bufnr)
-      local picker = action_state.get_current_picker(prompt_bufnr)
-      if not picker or not picker.previewer or not picker.previewer.state then return end
-      local winid, bufnr = picker.previewer.state.winid, picker.previewer.state.bufnr
-      if winid then
-        apply_notes_highlights(winid)
-        vim.api.nvim_set_option_value('wrap', true, { win = winid })
-        vim.api.nvim_set_option_value('linebreak', true, { win = winid })
-        vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
-      end
-      if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-        vim.bo[bufnr].filetype = "markdown"
-        vim.defer_fn(function()
-          if vim.api.nvim_buf_is_valid(bufnr) then
-            apply_frontmatter_highlights(bufnr)
+    -- Custom previewer that applies highlights synchronously to avoid flicker.
+    -- Uses sync file read which is fine for typical notes (<100KB), but may
+    -- cause brief delay for very large files (1MB+).
+    local function create_notes_previewer()
+      local previewers = require("telescope.previewers")
+      return previewers.new_buffer_previewer({
+        title = "Preview",
+        define_preview = function(self, entry)
+          local bufnr = self.state.bufnr
+          local winid = self.state.winid
+          if not entry.filename or not vim.fn.filereadable(entry.filename) then return end
+
+          local lines = vim.fn.readfile(entry.filename)
+          vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+          vim.bo[bufnr].filetype = "markdown"
+
+          if winid then
+            apply_notes_highlights(winid)
+            vim.api.nvim_set_option_value('wrap', true, { win = winid })
+            vim.api.nvim_set_option_value('linebreak', true, { win = winid })
+            vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
           end
-        end, 10)
-      end
+          apply_frontmatter_highlights(bufnr)
+
+          if entry.lnum and winid then
+            pcall(vim.api.nvim_win_set_cursor, winid, { entry.lnum, 0 })
+          end
+        end,
+      })
     end
 
-    local function grep_picker_mappings(preview_group)
+    local function grep_picker_mappings()
       return function(prompt_bufnr)
         actions.select_default:replace(function()
           local sel = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
           if sel then
             vim.cmd("edit " .. vim.fn.fnameescape(sel.filename))
-            if sel.lnum then vim.api.nvim_win_set_cursor(0, { sel.lnum, sel.col - 1 }) end
+            if sel.lnum then vim.api.nvim_win_set_cursor(0, { sel.lnum, (sel.col or 1) - 1 }) end
           end
         end)
-        vim.api.nvim_create_autocmd("User", {
-          group = preview_group,
-          pattern = "TelescopePreviewerLoaded",
-          callback = function()
-            if vim.api.nvim_buf_is_valid(prompt_bufnr) then apply_preview_highlights(prompt_bufnr) end
-          end,
-        })
-        vim.schedule(function() apply_preview_highlights(prompt_bufnr) end)
         return true
       end
     end
@@ -369,7 +372,6 @@ return {
 
     function obsidian_config.search_notes()
       local workspace = get_workspace()
-      local preview_group = vim.api.nvim_create_augroup("ObsidianSearchNotesPreview", { clear = true })
 
       pickers.new(telescope_opts("Search Notes", { cwd = workspace, previewer = true }), {
         finder = finders.new_job(function(prompt)
@@ -382,8 +384,8 @@ return {
           return default_entry
         end, 120),
         sorter = telescope_config_values.generic_sorter({}),
-        previewer = telescope_config_values.grep_previewer({}),
-        attach_mappings = grep_picker_mappings(preview_group),
+        previewer = create_notes_previewer(),
+        attach_mappings = grep_picker_mappings(),
       }):find()
     end
 
@@ -499,7 +501,6 @@ return {
 
     function obsidian_config.find_tags()
       local workspace = get_workspace()
-      local preview_group = vim.api.nvim_create_augroup("ObsidianFindTagsPreview", { clear = true })
 
       pickers.new(telescope_opts("Find Tags", { cwd = workspace, previewer = true }), {
         finder = finders.new_job(function(prompt)
@@ -512,8 +513,8 @@ return {
           return default_entry
         end, 120),
         sorter = telescope_config_values.generic_sorter({}),
-        previewer = telescope_config_values.grep_previewer({}),
-        attach_mappings = grep_picker_mappings(preview_group),
+        previewer = create_notes_previewer(),
+        attach_mappings = grep_picker_mappings(),
       }):find()
     end
 
