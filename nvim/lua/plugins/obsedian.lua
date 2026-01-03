@@ -43,18 +43,12 @@ return {
 
     local highlights = {
       NotesBrown = { fg = "#9E8069" },
-      NotesBrownBold = { fg = "#9E8069", bold = true },
-      NotesBrownItalic = { fg = "#9E8069", italic = true },
-      NotesPink = { fg = "#D3869B" },
       NotesBlue = { fg = "#7DAEA3" },
       ObsidianParentDir = { fg = "#9E8069" },
       NotesWhiteItalic = { fg = "#C0B8A8", italic = true },
-      NotesWhiteItalicDark = { fg = "#968A80", italic = true },
       NotesLightItalic = { fg = "#C0B8A8", italic = true },
       NotesYamlString = { fg = "#968A80", italic = true },
       NotesYamlKey = { fg = "#C0B8A8" },
-      ['@markup.raw.block.markdown.markdown'] = { fg = "#968A80", italic = true },
-      markdownCodeBlock = { fg = "#968A80", italic = true },
     }
     for name, opts in pairs(highlights) do
       vim.api.nvim_set_hl(0, name, opts)
@@ -73,7 +67,6 @@ return {
       "@markup.bold.markdown_inline:NotesLightItalic", "@markup.link.label:NotesBlue",
       "@markup.link:NotesBlue", "@markup.link.url:NotesBlue", "@text.uri:NotesBlue",
       "@text.reference:NotesBlue", "@keyword.directive:NotesWhiteItalic",
-      "@property:NotesYamlKey", "@property.yaml:NotesYamlKey", "@string.yaml:NotesYamlString",
     }, ",")
 
     vim.g.obsidian_current_workspace = WORKSPACES[1].name
@@ -85,6 +78,83 @@ return {
 
     local function apply_notes_highlights(winid)
       vim.api.nvim_set_option_value('winhighlight', NOTES_HIGHLIGHTS, { win = winid })
+    end
+
+    local frontmatter_ns = vim.api.nvim_create_namespace("obsidian_frontmatter")
+
+    local function apply_frontmatter_highlights(bufnr)
+      vim.api.nvim_buf_clear_namespace(bufnr, frontmatter_ns, 0, -1)
+      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, 50, false)
+      if #lines == 0 or lines[1] ~= "---" then return end
+
+      local end_line = nil
+      for i = 2, #lines do
+        if lines[i] == "---" then
+          end_line = i; break
+        end
+      end
+      if not end_line then return end
+
+      for i = 2, end_line - 1 do
+        local line = lines[i]
+        local colon_pos = line:find(":")
+        if colon_pos then
+          vim.api.nvim_buf_set_extmark(bufnr, frontmatter_ns, i - 1, 0, {
+            end_col = colon_pos - 1, hl_group = "NotesYamlKey", priority = 200,
+          })
+          if #line > colon_pos + 1 then
+            vim.api.nvim_buf_set_extmark(bufnr, frontmatter_ns, i - 1, colon_pos + 1, {
+              end_col = #line, hl_group = "NotesYamlString", priority = 200,
+            })
+          end
+        elseif line:match("^  %- ") then
+          vim.api.nvim_buf_set_extmark(bufnr, frontmatter_ns, i - 1, 4, {
+            end_col = #line, hl_group = "NotesYamlString", priority = 200,
+          })
+        end
+      end
+    end
+
+    local function apply_preview_highlights(prompt_bufnr)
+      local picker = action_state.get_current_picker(prompt_bufnr)
+      if not picker or not picker.previewer or not picker.previewer.state then return end
+      local winid, bufnr = picker.previewer.state.winid, picker.previewer.state.bufnr
+      if winid then
+        apply_notes_highlights(winid)
+        vim.api.nvim_set_option_value('wrap', true, { win = winid })
+        vim.api.nvim_set_option_value('linebreak', true, { win = winid })
+        vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
+      end
+      if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+        vim.bo[bufnr].filetype = "markdown"
+        vim.defer_fn(function()
+          if vim.api.nvim_buf_is_valid(bufnr) then
+            apply_frontmatter_highlights(bufnr)
+          end
+        end, 10)
+      end
+    end
+
+    local function grep_picker_mappings(preview_group)
+      return function(prompt_bufnr)
+        actions.select_default:replace(function()
+          local sel = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+          if sel then
+            vim.cmd("edit " .. vim.fn.fnameescape(sel.filename))
+            if sel.lnum then vim.api.nvim_win_set_cursor(0, { sel.lnum, sel.col - 1 }) end
+          end
+        end)
+        vim.api.nvim_create_autocmd("User", {
+          group = preview_group,
+          pattern = "TelescopePreviewerLoaded",
+          callback = function()
+            if vim.api.nvim_buf_is_valid(prompt_bufnr) then apply_preview_highlights(prompt_bufnr) end
+          end,
+        })
+        vim.schedule(function() apply_preview_highlights(prompt_bufnr) end)
+        return true
+      end
     end
 
     local function clear_cache()
@@ -226,6 +296,7 @@ return {
           vim.opt_local.wrap = true
           vim.opt_local.linebreak = true
           apply_notes_highlights(0)
+          apply_frontmatter_highlights(0)
         elseif filename:match("%.ya?ml$") and not filename:match(NOTES_PATH_PATTERN) then
           vim.wo.winhighlight = ''
         end
@@ -242,42 +313,27 @@ return {
             local filename = vim.api.nvim_buf_get_name(bufnr)
             if vim.bo[bufnr].filetype == "markdown" and filename:match(NOTES_PATH_PATTERN) then
               apply_notes_highlights(winid)
+              apply_frontmatter_highlights(bufnr)
             end
           end
         end)
       end,
     })
 
+    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+      group = autocmds,
+      pattern = "*.md",
+      callback = function()
+        local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+        if cursor_line > 50 then return end
+        local filename = vim.api.nvim_buf_get_name(0)
+        if is_notes_file(filename) then
+          apply_frontmatter_highlights(0)
+        end
+      end,
+    })
+
     local obsidian_config = {}
-
-    local function get_tags()
-      local now = os.time()
-      if cache.tags.data and (now - cache.timestamp.tags) < CACHE_DURATION then return cache.tags.data end
-      local ws = get_workspace()
-      local cmd = string.format(
-        "rg --no-filename --no-line-number -o '(^  - [a-zA-Z0-9_-]+$|#[a-zA-Z0-9_-]+)' '%s' --type md 2>/dev/null", ws)
-      local tag_set = {}
-      for _, match in ipairs(system_lines(cmd)) do
-        local tag = match:match("^  %- (.+)") or match:match("#(.+)")
-        if tag and tag ~= "" and #tag <= 50 then tag_set[tag] = true end
-      end
-      local tags = vim.tbl_keys(tag_set)
-      table.sort(tags)
-      cache.tags.data, cache.timestamp.tags = tags, now
-      return tags
-    end
-
-    local function get_files_with_tag(tag)
-      if not validate_input(tag, "tag") then return {} end
-      local ws = get_workspace()
-      local cmd = string.format("rg --files-with-matches '^  - %s$' '%s' --type md 2>/dev/null", vim.fn.shellescape(tag),
-        ws)
-      local files = {}
-      for _, file in ipairs(system_lines(cmd)) do
-        if vim.fn.filereadable(file) == 1 then table.insert(files, file) end
-      end
-      return files
-    end
 
     function obsidian_config.create_note(folder, prompt)
       if not validate_input(folder, "folder") or not validate_input(prompt, "prompt") then return end
@@ -315,19 +371,6 @@ return {
       local workspace = get_workspace()
       local preview_group = vim.api.nvim_create_augroup("ObsidianSearchNotesPreview", { clear = true })
 
-      local function apply_preview_highlights(prompt_bufnr)
-        local picker = action_state.get_current_picker(prompt_bufnr)
-        if not picker or not picker.previewer or not picker.previewer.state then return end
-        local winid, bufnr = picker.previewer.state.winid, picker.previewer.state.bufnr
-        if winid then
-          apply_notes_highlights(winid)
-          vim.api.nvim_set_option_value('wrap', true, { win = winid })
-          vim.api.nvim_set_option_value('linebreak', true, { win = winid })
-          vim.api.nvim_set_option_value('conceallevel', 2, { win = winid })
-        end
-        if bufnr and vim.api.nvim_buf_is_valid(bufnr) then vim.bo[bufnr].filetype = "markdown" end
-      end
-
       pickers.new(telescope_opts("Search Notes", { cwd = workspace, previewer = true }), {
         finder = finders.new_job(function(prompt)
           if not prompt or prompt == "" then return nil end
@@ -340,25 +383,7 @@ return {
         end, 120),
         sorter = telescope_config_values.generic_sorter({}),
         previewer = telescope_config_values.grep_previewer({}),
-        attach_mappings = function(prompt_bufnr)
-          actions.select_default:replace(function()
-            local sel = action_state.get_selected_entry()
-            actions.close(prompt_bufnr)
-            if sel then
-              vim.cmd("edit " .. vim.fn.fnameescape(sel.filename))
-              if sel.lnum then vim.api.nvim_win_set_cursor(0, { sel.lnum, sel.col - 1 }) end
-            end
-          end)
-          vim.api.nvim_create_autocmd("User", {
-            group = preview_group,
-            pattern = "TelescopePreviewerLoaded",
-            callback = function()
-              if vim.api.nvim_buf_is_valid(prompt_bufnr) then apply_preview_highlights(prompt_bufnr) end
-            end,
-          })
-          vim.schedule(function() apply_preview_highlights(prompt_bufnr) end)
-          return true
-        end,
+        attach_mappings = grep_picker_mappings(preview_group),
       }):find()
     end
 
@@ -473,23 +498,23 @@ return {
     end
 
     function obsidian_config.find_tags()
-      local function show_tags()
-        simple_picker("Find Tags", get_tags(), function(tag)
-          simple_picker("Files with tag: " .. tag, get_files_with_tag(tag), function(file)
-            vim.cmd("edit " .. vim.fn.fnameescape(file))
-          end, {
-            is_files = true,
-            mappings = function(prompt_bufnr, map)
-              local back = function()
-                actions.close(prompt_bufnr); vim.schedule(show_tags)
-              end
-              map("i", "<Esc>", back)
-              map("n", "<Esc>", back)
-            end,
-          })
-        end)
-      end
-      show_tags()
+      local workspace = get_workspace()
+      local preview_group = vim.api.nvim_create_augroup("ObsidianFindTagsPreview", { clear = true })
+
+      pickers.new(telescope_opts("Find Tags", { cwd = workspace, previewer = true }), {
+        finder = finders.new_job(function(prompt)
+          if not prompt or prompt == "" then return nil end
+          return { "rg", "--with-filename", "--line-number", "--column", "--smart-case", "--max-count", "100",
+            "^  - .*" .. prompt, workspace, "--type", "md" }
+        end, function(entry)
+          local default_entry = make_entry.gen_from_vimgrep({})(entry)
+          if default_entry then default_entry.display = make_file_display(default_entry.filename, workspace) end
+          return default_entry
+        end, 120),
+        sorter = telescope_config_values.generic_sorter({}),
+        previewer = telescope_config_values.grep_previewer({}),
+        attach_mappings = grep_picker_mappings(preview_group),
+      }):find()
     end
 
     function obsidian_config.switch_workspace()
