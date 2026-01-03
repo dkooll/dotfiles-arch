@@ -57,7 +57,7 @@ return {
     vim.api.nvim_create_autocmd("User", {
       pattern = "LazyVimStarted",
       callback = function()
-        local lazy_stats = require("lazy").stats()
+        local lazy_stats = require("lazy.stats").stats()
         local ms = (math.floor(lazy_stats.startuptime * 100 + 0.5) / 100)
         dashboard.section.footer.val = string.format(
           "Neovim loaded %d plugins in %.2fms",
