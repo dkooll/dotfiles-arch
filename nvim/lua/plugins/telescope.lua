@@ -59,7 +59,21 @@ return {
           buffer_previewer_maker = function(filepath, bufnr, opts)
             filepath = vim.fn.expand(filepath)
             if vim.fn.getfsize(filepath) > 50000 then return end
-            require("telescope.previewers").buffer_previewer_maker(filepath, bufnr, opts or {})
+            opts = opts or {}
+            opts.use_ft_detect = true
+            local callback = opts.callback
+            opts.callback = function(bufnr_cb)
+              if callback then callback(bufnr_cb) end
+              vim.schedule(function()
+                if vim.api.nvim_buf_is_valid(bufnr_cb) then
+                  local ft = vim.filetype.match({ buf = bufnr_cb, filename = filepath })
+                  if ft then
+                    vim.bo[bufnr_cb].filetype = ft
+                  end
+                end
+              end)
+            end
+            require("telescope.previewers").buffer_previewer_maker(filepath, bufnr, opts)
           end,
           file_ignore_patterns = {
             "%.git/", "%.terraform/", "node_modules/", "target/", "bin/", "pkg/", "vendor/",
