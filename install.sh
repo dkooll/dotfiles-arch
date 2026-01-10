@@ -34,6 +34,7 @@ install_packages() {
     ripgrep \
     fd \
     fzf \
+    less \
     python python-pip \
     ansible \
     github-cli \
