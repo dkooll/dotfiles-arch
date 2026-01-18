@@ -80,7 +80,8 @@ install_packages() {
   esac
 
   install_source "terraform-ls" "command -v terraform-ls" \
-    "wget -q \$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep -o 'https://releases.hashicorp.com/terraform-ls/[^/]*/terraform-ls_[^_]*_linux_${tfls_arch}.zip' | head -1) -O /tmp/terraform-ls.zip \
+    "TFLS_VERSION=\$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep '\"tag_name\"' | sed -E 's/.*\"v([^\"]+)\".*/\\1/') \
+     && wget -q https://releases.hashicorp.com/terraform-ls/\${TFLS_VERSION}/terraform-ls_\${TFLS_VERSION}_linux_${tfls_arch}.zip -O /tmp/terraform-ls.zip \
      && unzip -o /tmp/terraform-ls.zip -d /tmp \
      && sudo mv /tmp/terraform-ls /usr/local/bin/ \
      && rm /tmp/terraform-ls.zip"
