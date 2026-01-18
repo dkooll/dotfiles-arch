@@ -2,15 +2,10 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
-    build = ":silent! TSUpdate",
+    build = ":TSUpdate",
     dependencies = {
       "windwp/nvim-ts-autotag",
-      {
-        "nvim-treesitter/nvim-treesitter-textobjects",
-        cond = function()
-          return pcall(require, "nvim-treesitter.configs")
-        end,
-      },
+      "nvim-treesitter/nvim-treesitter-textobjects",
     },
     opts = {
       highlight = {
@@ -84,22 +79,7 @@ return {
       },
     },
     config = function(_, opts)
-      local ok, cfg = pcall(require, "nvim-treesitter.configs")
-      if not ok then
-        return
-      end
-
-      local function silent_setup()
-        local orig_print = _G.print
-        _G.print = function() end
-        local ok_setup, err = pcall(cfg.setup, opts)
-        _G.print = orig_print
-        if not ok_setup then
-          vim.notify("nvim-treesitter setup failed: " .. err, vim.log.levels.ERROR)
-        end
-      end
-
-      silent_setup()
+      require("nvim-treesitter.configs").setup(opts)
     end,
   },
 }
