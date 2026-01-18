@@ -1,6 +1,13 @@
 return {
-  cmd = { "terraform-ls", "serve" },
+  cmd = { vim.fn.expand("~/.local/bin/terraform-ls"), "serve" },
   filetypes = { "terraform", "tf", "tfvars" },
   root_markers = { ".terraform", ".git" },
   single_file_support = true,
 }
+
+-- return {
+--   cmd = { "terraform-ls", "serve" },
+--   filetypes = { "terraform", "tf", "tfvars" },
+--   root_markers = { ".terraform", ".git" },
+--   single_file_support = true,
+-- }
