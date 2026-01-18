@@ -1,5 +1,8 @@
+local local_bin = vim.fn.expand("~/.local/bin/rust-analyzer")
+local cmd = vim.fn.executable(local_bin) == 1 and local_bin or "rust-analyzer"
+
 return {
-  cmd = { "rust-analyzer" },
+  cmd = { cmd },
   filetypes = { "rust" },
   root_markers = { "Cargo.toml", "rust-project.json" },
   settings = {

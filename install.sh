@@ -109,6 +109,15 @@ install_packages() {
 
   [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
+  # Ensure rust-analyzer is installed via rustup and available on PATH
+  if command -v rustup >/dev/null 2>&1; then
+    rustup component add rust-analyzer >/dev/null 2>&1 || true
+    mkdir -p "$HOME/.local/bin"
+    if [[ -x "$HOME/.cargo/bin/rust-analyzer" ]]; then
+      ln -sf "$HOME/.cargo/bin/rust-analyzer" "$HOME/.local/bin/rust-analyzer"
+    fi
+  fi
+
   install_source "fnm" "command -v fnm" \
     "curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell"
 
