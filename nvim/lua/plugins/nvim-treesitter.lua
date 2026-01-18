@@ -80,4 +80,15 @@ return {
   config = function(_, opts)
     require("nvim-treesitter.configs").setup(opts)
   end,
+},
+{
+  "nvim-treesitter/nvim-treesitter-textobjects",
+  event = { "BufReadPost", "BufNewFile" },
+  dependencies = { "nvim-treesitter/nvim-treesitter" },
+  config = function()
+    -- no-op: main treesitter config sets textobjects; guard against missing treesitter
+    if not pcall(require, "nvim-treesitter.configs") then
+      return
+    end
+  end,
 }
