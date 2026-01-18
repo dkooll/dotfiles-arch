@@ -3,10 +3,30 @@ return {
     "nvim-treesitter/nvim-treesitter",
     branch = "main",
     lazy = false,
-    build = ":TSUpdate",
-    config = function()
-      local ts = require("nvim-treesitter.configs")
-      ts.setup({
+    build = ":silent! TSUpdate",
+    config = function(_, opts)
+      local ok, ts = pcall(require, "nvim-treesitter.configs")
+      if not ok then
+        -- If the plugin isn't installed yet, install it synchronously and retry once
+        local Lazy = require("lazy")
+        Lazy.install({ plugins = { "nvim-treesitter" }, wait = true })
+        ok, ts = pcall(require, "nvim-treesitter.configs")
+        if not ok then
+          return
+        end
+      end
+      ts.setup(opts)
+
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function()
+          pcall(vim.treesitter.start)
+          pcall(function()
+            vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end)
+        end,
+      })
+    end,
+    opts = {
         ensure_installed = {
           "bash",
           "dockerfile",
@@ -28,17 +48,7 @@ return {
         },
         highlight = { enable = true },
         indent = { enable = true },
-      })
-
-      vim.api.nvim_create_autocmd("FileType", {
-        callback = function()
-          pcall(vim.treesitter.start)
-          pcall(function()
-            vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-          end)
-        end,
-      })
-    end,
+    },
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
