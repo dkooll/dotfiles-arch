@@ -79,7 +79,29 @@ return {
       },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      local function setup()
+        local ok, cfg = pcall(require, "nvim-treesitter.configs")
+        if ok then
+          cfg.setup(opts)
+          return true
+        end
+        return false
+      end
+
+      if setup() then
+        return
+      end
+
+      -- If missing, install and try once more
+      vim.schedule(function()
+        local ok_lazy, Lazy = pcall(require, "lazy")
+        if not ok_lazy then
+          return
+        end
+        Lazy.install({ plugins = { "nvim-treesitter" }, wait = true })
+        Lazy.load({ plugins = { "nvim-treesitter" }, wait = true })
+        setup()
+      end)
     end,
   },
 }
