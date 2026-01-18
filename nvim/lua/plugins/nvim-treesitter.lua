@@ -78,9 +78,15 @@ return {
       },
     },
     config = function(_, opts)
-      local cfg_ok, cfg = pcall(require, "nvim-treesitter.configs")
-      if not cfg_ok then
+      local ok_cfg, cfg = pcall(require, "nvim-treesitter.configs")
+      if not ok_cfg then
         return
+      end
+
+      -- Prefer git checkout to avoid tarball path issues (e.g., gomod main branch)
+      local ok_install, install = pcall(require, "nvim-treesitter.install")
+      if ok_install then
+        install.prefer_git = true
       end
 
       -- suppress installer output to avoid hit-enter prompts
