@@ -44,16 +44,6 @@ return {
     event = "VeryLazy",
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      require("nvim-treesitter-textobjects").setup({
-        select = {
-          lookahead = true,
-        },
-        move = {
-          enable = true,
-          set_jumps = true,
-        },
-      })
-
       local select = require("nvim-treesitter-textobjects.select")
       local move = require("nvim-treesitter-textobjects.move")
 
