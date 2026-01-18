@@ -3,56 +3,40 @@ return {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
     build = ":TSUpdate",
-    main = "nvim-treesitter.configs",
-    opts = {
-      highlight = {
-        enable = true,
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-      ensure_installed = {
-        "bash",
-        "dockerfile",
-        "go",
-        "gomod",
-        "gosum",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "regex",
-        "rust",
-        "terraform",
-        "hcl",
-        "vim",
-        "yaml",
-      },
-      sync_install = false,
-      auto_install = true,
-      ignore_install = {},
-      modules = {},
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<leader>vv",
-          node_incremental = "<leader>vv",
-          scope_incremental = false,
-          node_decremental = "<BS>",
+    config = function()
+      require("nvim-treesitter").setup({
+        ensure_installed = {
+          "bash",
+          "dockerfile",
+          "go",
+          "gomod",
+          "gosum",
+          "json",
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "regex",
+          "rust",
+          "terraform",
+          "hcl",
+          "vim",
+          "yaml",
         },
-      },
-    },
+      })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
+      })
+    end,
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
     event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
-
-      vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
-      vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
-
       require("nvim-treesitter-textobjects").setup({
         select = {
           enable = true,
