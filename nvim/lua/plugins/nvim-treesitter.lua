@@ -2,7 +2,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     event = { "BufReadPost", "BufNewFile" },
-    build = ":silent! TSUpdate",
+    build = ":silent! TSUpdateSync",
     dependencies = {
       "windwp/nvim-ts-autotag",
     },
@@ -31,7 +31,7 @@ return {
         "vimdoc",
         "yaml",
       },
-      sync_install = false,
+      sync_install = true,
       auto_install = true, -- install missing parsers on first use
       ignore_install = {},
       modules = {},
@@ -83,7 +83,6 @@ return {
         return
       end
 
-      -- Prefer git checkout to avoid tarball path issues (e.g., gomod main branch)
       local ok_install, install = pcall(require, "nvim-treesitter.install")
       if ok_install then
         install.prefer_git = true
@@ -104,7 +103,7 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     cond = function()
-      return pcall(require, "nvim-treesitter.configs")
+      return package.loaded["nvim-treesitter.configs"] or pcall(require, "nvim-treesitter.configs")
     end,
     config = function() end, -- settings come from main treesitter opts
   },
