@@ -79,7 +79,12 @@ return {
       },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      local ok, configs = pcall(require, "nvim-treesitter.configs")
+      if not ok then
+        vim.notify("nvim-treesitter not available; skipping setup", vim.log.levels.WARN)
+        return
+      end
+      configs.setup(opts)
     end,
   },
   {
@@ -87,9 +92,7 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      if not pcall(require, "nvim-treesitter.configs") then
-        return
-      end
+      pcall(require, "nvim-treesitter.configs")
     end,
   },
 }
