@@ -103,12 +103,9 @@ return {
     "nvim-treesitter/nvim-treesitter-textobjects",
     event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
-    config = function()
-      local ok = pcall(require, "nvim-treesitter.configs")
-      if not ok then
-        return
-      end
-      -- modules configured via main treesitter opts
+    cond = function()
+      return pcall(require, "nvim-treesitter.configs")
     end,
+    config = function() end, -- settings come from main treesitter opts
   },
 }
