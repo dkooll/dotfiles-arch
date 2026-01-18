@@ -3,29 +3,13 @@ return {
     "nvim-treesitter/nvim-treesitter",
     branch = "main",
     lazy = false,
-    build = ":silent! TSUpdate",
+    build = ":TSUpdateSync",
     config = function(_, opts)
-      local ok, ts = pcall(require, "nvim-treesitter.configs")
-      if not ok then
-        -- If the plugin isn't installed yet, install it synchronously and retry once
-        local Lazy = require("lazy")
-        Lazy.install({ plugins = { "nvim-treesitter" }, wait = true })
-        ok, ts = pcall(require, "nvim-treesitter.configs")
-        if not ok then
-          return
-        end
-      end
-      local function silent_setup()
-        local orig_print = _G.print
-        _G.print = function() end -- suppress verbose install output that causes hit-enter prompts
-        local ok_setup, err = pcall(ts.setup, opts)
-        _G.print = orig_print
-        if not ok_setup then
-          vim.notify("nvim-treesitter setup failed: " .. err, vim.log.levels.ERROR)
-        end
-      end
+      local ts = require("nvim-treesitter.configs")
+      local install = require("nvim-treesitter.install")
+      install.prefer_git = true -- avoid tarball layout issues that can cause mv failures
 
-      silent_setup()
+      ts.setup(opts)
 
       vim.api.nvim_create_autocmd("FileType", {
         callback = function()
@@ -39,7 +23,6 @@ return {
     opts = {
       ensure_installed = {
         "bash",
-        "dockerfile",
         "go",
         "gomod",
         "gosum",
@@ -57,7 +40,7 @@ return {
         "yaml",
       },
       sync_install = true,
-      auto_install = false,
+      auto_install = false, -- disable per-filetype auto installs to avoid nested autocmds
       highlight = { enable = true },
       indent = { enable = true },
     },
@@ -65,15 +48,9 @@ return {
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
     branch = "main",
-    event = "VeryLazy",
+    event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      local Lazy = require("lazy")
-
-      -- Ensure plugin is present before configuring
-      Lazy.install({ plugins = { "nvim-treesitter-textobjects" }, wait = true })
-      pcall(Lazy.load, { plugins = { "nvim-treesitter-textobjects" }, wait = true })
-
       local ok, TS = pcall(require, "nvim-treesitter-textobjects")
       if ok and TS.setup then
         TS.setup({
@@ -88,11 +65,7 @@ return {
       vim.api.nvim_create_autocmd("FileType", {
         callback = function(ev)
           local buf = ev.buf
-          local ok_move, move = pcall(function()
-            Lazy.install({ plugins = { "nvim-treesitter-textobjects" }, wait = true })
-            pcall(Lazy.load, { plugins = { "nvim-treesitter-textobjects" }, wait = true })
-            return require("nvim-treesitter-textobjects.move")
-          end)
+          local ok_move, move = pcall(require, "nvim-treesitter-textobjects.move")
           if not ok_move then
             return
           end
