@@ -1,8 +1,8 @@
+-- Pin to 0.38.2 due to schema bug in 0.38.3
 local local_bin = vim.fn.expand("~/.local/bin/terraform-ls")
-local cmd = vim.fn.executable(local_bin) == 1 and local_bin or "terraform-ls"
 
 return {
-  cmd = { cmd, "serve" },
+  cmd = { local_bin, "serve" },
   filetypes = { "terraform", "tf", "tfvars" },
   root_markers = { ".terraform", ".git" },
   single_file_support = true,

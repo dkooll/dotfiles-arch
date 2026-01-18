@@ -79,11 +79,14 @@ install_packages() {
     *) tfls_arch=amd64 ;;
   esac
 
-  install_source "terraform-ls" "command -v terraform-ls" \
-    "TFLS_VERSION=\$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep '\"tag_name\"' | sed -E 's/.*\"v([^\"]+)\".*/\\1/') \
+  mkdir -p "$HOME/.local/bin"
+
+  install_source "terraform-ls 0.38.2" "command -v terraform-ls >/dev/null && terraform-ls version 2>/dev/null | grep -q '0.38.2'" \
+    "TFLS_VERSION=0.38.2 \
      && wget -q https://releases.hashicorp.com/terraform-ls/\${TFLS_VERSION}/terraform-ls_\${TFLS_VERSION}_linux_${tfls_arch}.zip -O /tmp/terraform-ls.zip \
      && unzip -o /tmp/terraform-ls.zip -d /tmp \
-     && sudo mv /tmp/terraform-ls /usr/local/bin/ \
+     && mv /tmp/terraform-ls \$HOME/.local/bin/terraform-ls \
+     && chmod +x \$HOME/.local/bin/terraform-ls \
      && rm /tmp/terraform-ls.zip"
 
   local go_arch
