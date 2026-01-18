@@ -5,27 +5,29 @@ return {
     lazy = false,
     build = ":TSUpdate",
     config = function()
-      local ts = require("nvim-treesitter")
-      ts.setup()
-
-      ts.install({
-        "bash",
-        "dockerfile",
-        "go",
-        "gomod",
-        "gosum",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "regex",
-        "rust",
-        "terraform",
-        "hcl",
-        "vim",
-        "vimdoc",
-        "yaml",
+      local ts = require("nvim-treesitter.configs")
+      ts.setup({
+        ensure_installed = {
+          "bash",
+          "dockerfile",
+          "go",
+          "gomod",
+          "gosum",
+          "json",
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "regex",
+          "rust",
+          "terraform",
+          "hcl",
+          "vim",
+          "vimdoc",
+          "yaml",
+        },
+        highlight = { enable = true },
+        indent = { enable = true },
       })
 
       vim.api.nvim_create_autocmd("FileType", {
