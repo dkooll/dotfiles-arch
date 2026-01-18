@@ -38,7 +38,12 @@ install_packages() {
     python python-pip \
     ansible \
     github-cli \
-    azure-cli
+    azure-cli \
+    gopls \
+    lua-language-server \
+    pyright \
+    rust-analyzer \
+    bash-language-server
 
   install_source "neovim" "command -v nvim" \
     "wget -q https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz -O /tmp/nvim.tar.gz \
@@ -66,6 +71,19 @@ install_packages() {
       "$HOME/.local/bin/tfenv" use latest
     fi
   fi
+
+  local tfls_arch
+  case "$(uname -m)" in
+    x86_64|amd64) tfls_arch=amd64 ;;
+    arm64|aarch64) tfls_arch=arm64 ;;
+    *) tfls_arch=amd64 ;;
+  esac
+
+  install_source "terraform-ls" "command -v terraform-ls" \
+    "wget -q \$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep -o 'https://releases.hashicorp.com/terraform-ls/[^/]*/terraform-ls_[^_]*_linux_${tfls_arch}.zip' | head -1) -O /tmp/terraform-ls.zip \
+     && unzip -o /tmp/terraform-ls.zip -d /tmp \
+     && sudo mv /tmp/terraform-ls /usr/local/bin/ \
+     && rm /tmp/terraform-ls.zip"
 
   local go_arch
   case "$(uname -m)" in
@@ -105,7 +123,7 @@ install_packages() {
   if [[ -d "$FNM_DIR" ]] && command -v fnm &>/dev/null; then
     eval "$(fnm env)"
     fnm use 22 || true
-    npm install -g --silent neovim @anthropic-ai/claude-code @openai/codex || true
+    npm install -g --silent neovim @anthropic-ai/claude-code @openai/codex vscode-langservers-extracted || true
   fi
 
   local zsh_path
