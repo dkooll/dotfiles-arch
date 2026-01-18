@@ -5,7 +5,12 @@ return {
     build = ":silent! TSUpdate",
     dependencies = {
       "windwp/nvim-ts-autotag",
-      "nvim-treesitter/nvim-treesitter-textobjects",
+      {
+        "nvim-treesitter/nvim-treesitter-textobjects",
+        cond = function()
+          return pcall(require, "nvim-treesitter.configs")
+        end,
+      },
     },
     opts = {
       highlight = {
@@ -33,7 +38,7 @@ return {
         "yaml",
       },
       sync_install = false,
-      auto_install = true,
+      auto_install = true, -- install missing parsers on first use
       ignore_install = {},
       modules = {},
       incremental_selection = {
