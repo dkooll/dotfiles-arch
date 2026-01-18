@@ -89,9 +89,6 @@ return {
         return
       end
 
-      local install = require("nvim-treesitter.install")
-      install.prefer_git = true
-
       local function silent_setup()
         local orig_print = _G.print
         _G.print = function() end
