@@ -2,14 +2,18 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     branch = "main",
-    event = { "BufReadPost", "BufNewFile" },
+    lazy = false,
     build = ":TSUpdate",
     dependencies = {
       "windwp/nvim-ts-autotag",
     },
     config = function()
-      -- Ensure parsers are installed
-      local ensure_installed = {
+      require("nvim-treesitter").setup({
+        install_dir = vim.fn.stdpath("data") .. "/site",
+      })
+
+      -- Install parsers
+      require("nvim-treesitter").install({
         "bash",
         "go",
         "gomod",
@@ -26,43 +30,19 @@ return {
         "vim",
         "vimdoc",
         "yaml",
-      }
-
-      -- Install missing parsers
-      local installed = require("nvim-treesitter.info").installed_parsers()
-      local to_install = {}
-      for _, parser in ipairs(ensure_installed) do
-        if not vim.tbl_contains(installed, parser) then
-          table.insert(to_install, parser)
-        end
-      end
-      if #to_install > 0 then
-        vim.cmd("TSInstall " .. table.concat(to_install, " "))
-      end
-
-      -- Enable treesitter highlighting (Neovim 0.11+ native)
-      vim.api.nvim_create_autocmd("FileType", {
-        callback = function(args)
-          local ok = pcall(vim.treesitter.start, args.buf)
-          if ok then
-            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-          end
-        end,
       })
 
-      -- Start highlighting for current buffer
-      pcall(vim.treesitter.start)
-
-      -- Incremental selection
-      vim.keymap.set("n", "<leader>vv", function()
-        require("nvim-treesitter.incremental_selection").init_selection()
-      end, { desc = "Init treesitter selection" })
-      vim.keymap.set("x", "<leader>vv", function()
-        require("nvim-treesitter.incremental_selection").node_incremental()
-      end, { desc = "Increment treesitter selection" })
-      vim.keymap.set("x", "<BS>", function()
-        require("nvim-treesitter.incremental_selection").node_decremental()
-      end, { desc = "Decrement treesitter selection" })
+      -- Enable treesitter highlighting
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = {
+          "bash", "sh", "go", "gomod", "gosum", "json", "lua",
+          "markdown", "python", "regex", "rust", "terraform",
+          "hcl", "vim", "vimdoc", "yaml",
+        },
+        callback = function()
+          vim.treesitter.start()
+        end,
+      })
     end,
   },
   {
