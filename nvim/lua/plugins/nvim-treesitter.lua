@@ -8,39 +8,32 @@ return {
       "windwp/nvim-ts-autotag",
     },
     config = function()
-      require("nvim-treesitter").setup({
+      local ts = require("nvim-treesitter")
+
+      -- Setup first
+      ts.setup({
         install_dir = vim.fn.stdpath("data") .. "/site",
       })
 
-      -- Install parsers
-      require("nvim-treesitter").install({
-        "bash",
-        "go",
-        "gomod",
-        "gosum",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "regex",
-        "rust",
-        "terraform",
-        "hcl",
-        "vim",
-        "vimdoc",
-        "yaml",
-      })
+      -- Install parsers (defer to avoid blocking startup)
+      vim.defer_fn(function()
+        local parsers = {
+          "bash", "go", "gomod", "gosum", "json", "lua",
+          "markdown", "markdown_inline", "python", "regex",
+          "rust", "terraform", "hcl", "vim", "vimdoc", "yaml",
+        }
+        for _, parser in ipairs(parsers) do
+          local installed = ts.get_installed()
+          if not vim.tbl_contains(installed, parser) then
+            vim.cmd("TSInstall " .. parser)
+          end
+        end
+      end, 100)
 
       -- Enable treesitter highlighting
       vim.api.nvim_create_autocmd("FileType", {
-        pattern = {
-          "bash", "sh", "go", "gomod", "gosum", "json", "lua",
-          "markdown", "python", "regex", "rust", "terraform",
-          "hcl", "vim", "vimdoc", "yaml",
-        },
         callback = function()
-          vim.treesitter.start()
+          pcall(vim.treesitter.start)
         end,
       })
     end,
