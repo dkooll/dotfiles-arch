@@ -3,28 +3,13 @@ return {
     "nvim-treesitter/nvim-treesitter",
     branch = "main",
     event = { "BufReadPost", "BufNewFile" },
-    build = function()
-      local ok, install = pcall(require, "nvim-treesitter.install")
-      if not ok then
-        return
-      end
-      install.prefer_git = true
-      local orig_print = _G.print
-      _G.print = function() end
-      pcall(install.update, { with_sync = true })
-      _G.print = orig_print
-    end,
+    build = ":TSUpdate",
     dependencies = {
       "windwp/nvim-ts-autotag",
     },
-    opts = {
-      highlight = {
-        enable = true,
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-      autotag = { enable = true },
-      ensure_installed = {
+    config = function()
+      -- Ensure parsers are installed
+      local ensure_installed = {
         "bash",
         "go",
         "gomod",
@@ -41,27 +26,43 @@ return {
         "vim",
         "vimdoc",
         "yaml",
-      },
-      sync_install = false,
-      auto_install = true,
-      ignore_install = {},
-      modules = {},
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<leader>vv",
-          node_incremental = "<leader>vv",
-          scope_incremental = false,
-          node_decremental = "<BS>",
-        },
-      },
-    },
-    config = function(_, opts)
-      local ok, configs = pcall(require, "nvim-treesitter.configs")
-      if not ok then
-        return
+      }
+
+      -- Install missing parsers
+      local installed = require("nvim-treesitter.info").installed_parsers()
+      local to_install = {}
+      for _, parser in ipairs(ensure_installed) do
+        if not vim.tbl_contains(installed, parser) then
+          table.insert(to_install, parser)
+        end
       end
-      configs.setup(opts)
+      if #to_install > 0 then
+        vim.cmd("TSInstall " .. table.concat(to_install, " "))
+      end
+
+      -- Enable treesitter highlighting (Neovim 0.11+ native)
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          local ok = pcall(vim.treesitter.start, args.buf)
+          if ok then
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
+
+      -- Start highlighting for current buffer
+      pcall(vim.treesitter.start)
+
+      -- Incremental selection
+      vim.keymap.set("n", "<leader>vv", function()
+        require("nvim-treesitter.incremental_selection").init_selection()
+      end, { desc = "Init treesitter selection" })
+      vim.keymap.set("x", "<leader>vv", function()
+        require("nvim-treesitter.incremental_selection").node_incremental()
+      end, { desc = "Increment treesitter selection" })
+      vim.keymap.set("x", "<BS>", function()
+        require("nvim-treesitter.incremental_selection").node_decremental()
+      end, { desc = "Decrement treesitter selection" })
     end,
   },
   {
