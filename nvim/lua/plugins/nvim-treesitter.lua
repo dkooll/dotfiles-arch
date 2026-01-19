@@ -59,7 +59,6 @@ return {
     config = function(_, opts)
       local ok, configs = pcall(require, "nvim-treesitter.configs")
       if not ok then
-        vim.notify("nvim-treesitter not available; skipping setup", vim.log.levels.WARN)
         return
       end
       configs.setup(opts)
@@ -71,23 +70,12 @@ return {
     event = { "BufReadPost", "BufNewFile" },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      local ok, textobjects = pcall(require, "nvim-treesitter-textobjects")
-      if not ok then
-        vim.notify("nvim-treesitter-textobjects not available", vim.log.levels.WARN)
+      local select_ok, select = pcall(require, "nvim-treesitter-textobjects.select")
+      local move_ok, move = pcall(require, "nvim-treesitter-textobjects.move")
+
+      if not select_ok or not move_ok then
         return
       end
-
-      textobjects.setup({
-        select = {
-          lookahead = true,
-        },
-        move = {
-          set_jumps = true,
-        },
-      })
-
-      local select = require("nvim-treesitter-textobjects.select")
-      local move = require("nvim-treesitter-textobjects.move")
 
       -- Select textobjects
       vim.keymap.set({ "x", "o" }, "af", function()
