@@ -43,7 +43,6 @@ install_packages() {
     lua-language-server \
     containerd \
     buildkit \
-    nerdctl-compose \
     nerdctl \
     cni-plugins \
     pyright \
