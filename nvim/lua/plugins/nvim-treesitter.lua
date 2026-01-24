@@ -9,10 +9,7 @@ return {
         return
       end
       install.prefer_git = true
-      local orig_print = _G.print
-      _G.print = function() end
       pcall(install.update, { with_sync = true })
-      _G.print = orig_print
     end,
     dependencies = {
       "windwp/nvim-ts-autotag",
