@@ -135,7 +135,7 @@ return {
               local orig_display = result.display
               result.display = function(tbl)
                 if tbl.kind then
-                  return ts_displayer({ tbl.text or "", { tbl.kind or "", "TelescopeBoldType" } })
+                  return ts_displayer({ tbl.text or "", tbl.kind or "" })
                 end
                 return orig_display(tbl)
               end
