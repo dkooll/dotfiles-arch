@@ -41,9 +41,16 @@ install_packages() {
     azure-cli \
     gopls \
     lua-language-server \
+    containerd \
+    buildkit \
+    nerdctl \
+    cni-plugins \
     pyright \
     rust-analyzer \
     bash-language-server
+
+  log "enabling containerd"
+  sudo systemctl enable --now containerd
 
   install_source "neovim" "command -v nvim" \
     "wget -q https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz -O /tmp/nvim.tar.gz \
